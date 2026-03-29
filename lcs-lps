@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// ─────────────────────────────────────────
+// LCS - Longest Common Subsequence
+// ─────────────────────────────────────────
+int lcs(string& a, string& b) {
+    int n = a.size(), m = b.size();
+    vector<vector<int>> dp(n+1, vector<int>(m+1, 0));
+
+    for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= m; j++)
+            if (a[i-1] == b[j-1])
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+
+    return dp[n][m];
+}
+
+// LCS string reconstruct
+string lcsString(string& a, string& b) {
+    int n = a.size(), m = b.size();
+    vector<vector<int>> dp(n+1, vector<int>(m+1, 0));
+
+    for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= m; j++)
+            if (a[i-1] == b[j-1])
+                dp[i][j] = 1 + dp[i-1][j-1];
+            else
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+
+    // Backtrack
+    string res = "";
+    int i = n, j = m;
+    while (i > 0 && j > 0) {
+        if (a[i-1] == b[j-1]) { res += a[i-1]; i--; j--; }
+        else if (dp[i-1][j] > dp[i][j-1]) i--;
+        else j--;
+    }
+    reverse(res.begin(), res.end());
+    return res;
+}
+
+// ─────────────────────────────────────────
+// LPS - Longest Palindromic Subsequence
+// ─────────────────────────────────────────
+// Key insight: LPS(s) = LCS(s, reverse(s))
+
+int lps(string& s) {
+    string rev = s;
+    reverse(rev.begin(), rev.end());
+    return lcs(s, rev);
+}
+
+// LPS direct DP (interval DP)
+int lpsDirect(string& s) {
+    int n = s.size();
+    vector<vector<int>> dp(n, vector<int>(n, 0));
+
+    // Base: single chars
+    for (int i = 0; i < n; i++) dp[i][i] = 1;
+
+    // Fill by length
+    for (int len = 2; len <= n; len++) {
+        for (int i = 0; i <= n - len; i++) {
+            int j = i + len - 1;
+            if (s[i] == s[j])
+                dp[i][j] = 2 + (len == 2 ? 0 : dp[i+1][j-1]);
+            else
+                dp[i][j] = max(dp[i+1][j], dp[i][j-1]);
+        }
+    }
+
+    return dp[0][n-1];
+}
+
+// ─────────────────────────────────────────
+// Main
+// ─────────────────────────────────────────
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    // LCS example
+    string a = "ABCBDAB", b = "BDCAB";
+    cout << "LCS length : " << lcs(a, b) << "\n";
+    cout << "LCS string : " << lcsString(a, b) << "\n\n";
+
+    // LPS example
+    string s = "BBABCBCAB";
+    cout << "LPS (via LCS)    : " << lps(s) << "\n";
+    cout << "LPS (interval DP): " << lpsDirect(s) << "\n";
+
+    return 0;
+}
